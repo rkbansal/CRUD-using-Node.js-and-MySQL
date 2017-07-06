@@ -1,0 +1,2 @@
+First go to the server.js and change HOST, USER, PASSWORD and DATABASE name as your mysql database.
+Type dob only in this format yyyy-mm-dd.
