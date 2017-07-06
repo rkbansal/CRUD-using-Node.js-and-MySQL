@@ -1,0 +1,177 @@
+<!doctype html>
+<html>
+<head>
+	<title>DashBoard</title>
+	<link rel="stylesheet" href="bootstrap.css">
+	<script src="jquery.js"></script>
+	<script src="bootstrap.js"></script>
+	<style>
+		button{
+			position:relative;
+			margin-left:15%;
+			margin-top:20px;
+			float:left;
+		}
+
+		.controls{
+			border:solid 2px;
+			height:200px;
+			width:40%;
+			margin-top:100px;
+			margin-left:30%;
+			margin-right:30%;
+		}
+
+		img{
+			width:100px;
+			height:100px;
+		}
+	</style>
+</head>
+<body>
+	<div class="container">
+		<h1>Admin Dashboard</h1>
+		<div class="controls well col-sm-6">
+			<div class="upper">
+				<button type="button" class="btn btn-primary btn-lg" id="create" data-toggle="modal" data-target="#createModal">Create+</button>
+			</div>
+			<div class="bottom">
+				<button type="button" class="btn btn-info btn-lg" id="allusers">All users</button>
+			</div>
+		</div>
+		
+		<div class="result">
+		</div>
+				<!-- Create Modal-->
+		  <div class="modal fade" id="createModal" role="dialog">
+		    <div class="modal-dialog">
+		    
+		      <!-- Create Modal content-->
+		      <div class="modal-content">
+		        <div class="modal-header">
+		          <button type="button" class="close" data-dismiss="modal">&times;</button>
+		          <h4 class="modal-title">Create</h4>
+		        </div>
+		        <div class="modal-body">
+		          <form method="post" action="/profile" enctype="multipart/form-data">
+					<input type="text" id="name" name="username" placeholder="username">
+					<input type="text" id="age" name="age" placeholder="age">
+					<input type="text" id="dob" name="dob" placeholder="yyyy-mm-dd">
+					<input type="file" id="profileImage" name="profileImage">
+					<input type="submit" id="submit" name="uploadinfo" value="Upload Info">
+				</form>
+		        </div>
+		        <div class="modal-footer">
+		          <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+		        </div>
+		      </div>
+		    </div>
+		  </div>
+
+		  	<!-- Update Modal-->
+		  <div class="modal fade" id="updateModal" role="dialog">
+		    <div class="modal-dialog">
+		    
+		      <!-- Update Modal content-->
+		      <div class="modal-content">
+		        <div class="modal-header">
+		          <button type="button" class="close" data-dismiss="modal">&times;</button>
+		          <h4 class="modal-title">Update</h4>
+		        </div>
+		        <div class="modal-body">
+		          <form method="post" action="/update" enctype="multipart/form-data">
+		          	<input type="hidden" id="userid" name="id">
+					<input type="text" id="update_name" name="username" placeholder="username">
+					<input type="text" id="update_age" name="age" placeholder="age">
+					<input type="text" id="update_dob" name="dob" placeholder="dob">
+					<input type="file" id="update_profileImage" name="profileImage">
+					<input type="submit" id="update_submit" name="uploadinfo" value="Upload Info">
+				</form>
+				<img id="update_image" src="">
+		        </div>
+		        <div class="modal-footer">
+		          <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+		        </div>
+		      </div>
+		    </div>
+		  </div>
+	</div>
+	<script>
+	$(document).ready(function(){
+
+		$('#allusers').on('click', function(e){
+			
+			$.ajax({
+				url: "/allusers",
+				type:"GET",
+				success: function(data){
+					var userUI = '<table class="table table-striped">\
+									<thead>\
+										<tr>\
+											<th>id</th>\
+											<th>username</th>\
+											<th>age</th>\
+											<th>dob</th>\
+											<th>profile picture</th>\
+											<th>Update</th>\
+											<th>Delete</th>\
+										</tr>\
+									</thead>\
+									<tbody>';
+					$(data).each(function(i, e){
+						e.dob = e.dob.slice(0,10);
+						e.profilepicture = e.profilepicture.replace("public\\","\\");
+						userUI += '<tr id="'+e.id+'">\
+									<td>'+e.id+'</td>\
+									<td>'+e.username+'</td>\
+									<td>'+e.age+'</td>\
+									<td>'+e.dob+'</td>\
+									<td><img src="'+e.profilepicture+'"></td>\
+									<td><button type="button" class="btn btn-warning update" id="'+e.id+'" data-username="'+e.username+'" data-age="'+e.age+'" data-dob="'+e.dob+'" data-src="'+e.profilepicture+'" data-toggle="modal" data-target="#updateModal">Update</button></td>\
+									<td><button type="button" class="btn btn-danger delete" id="'+e.id+'" data-src="'+e.profilepicture+'">Delete</button></td>\
+									</tr>';
+					});
+					userUI += '</tbody></table>';
+					$('.result').html(userUI);
+
+					//update
+					$('.update').on('click', function(e){
+						// e.preventDefault();
+						var id = $(this).attr("id")
+						var username = $(this).data("username");
+						var age = $(this).data("age");
+						var dob = $(this).data("dob");
+						var src = $(this).data("src");
+
+						$('#userid').val(id);
+						$('#update_name').val(username);
+						$('#update_age').val(age);
+						$('#update_dob').val(dob);
+						$('#update_image').attr("src",src);
+						
+						// e.stopImmediatePropagation();
+					});
+
+					$('.delete').on('click', function(e){
+						e.preventDefault();
+						console.log($(this).parent().parent().remove());
+						var id = $(this).attr("id");
+						var src = $(this).data("src");
+						$.ajax({
+							url:"/deleteuser",
+							type:"GET",
+							data: {"id": id, "src": src},
+							success: function(data){
+								console.log("successfully deleted");
+							}
+						});
+						e.stopImmediatePropagation();
+					});
+				}
+			});
+		});
+
+	});
+	</script>
+</body>
+</html>
